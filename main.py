@@ -2,8 +2,12 @@ from flask import Flask, render_template, request, session, redirect, url_for
 from flask_socketio import join_room, leave_room, send, SocketIO
 import random
 from string import ascii_uppercase
+from flask_cors import CORS
+ # This will allow all domains to access your app
+
 
 app = Flask(__name__)
+CORS(app) 
 app.config["SECRET_KEY"] = "hjhjsdahhds"
 socketio = SocketIO(app)
 
