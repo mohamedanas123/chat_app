@@ -1,4 +1,5 @@
-{% extends 'base.html' %} {% block content %}
+{% extends 'base.html' %}
+{% block content %}
 <div class="message-box">
   <h2>Chat Room: {{code}}</h2>
   <div class="messages" id="messages"></div>
@@ -15,38 +16,48 @@
     </button>
   </div>
 </div>
+
 <script type="text/javascript">
-  var socketio = io();
+  // Initialize Socket.IO with proper connection handling
+  var socketio = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
 
   const messages = document.getElementById("messages");
 
+  // Create new message element and append it
   const createMessage = (name, msg) => {
     const content = `
-    <div class="text">
+      <div class="text">
         <span>
             <strong>${name}</strong>: ${msg}
         </span>
         <span class="muted">
             ${new Date().toLocaleString()}
         </span>
-    </div>
+      </div>
     `;
     messages.innerHTML += content;
+    messages.scrollTop = messages.scrollHeight; // Auto-scroll to the latest message
   };
 
+  // Listen for 'message' events from the server
   socketio.on("message", (data) => {
+    console.log("Received message:", data); // Log received messages for debugging
     createMessage(data.name, data.message);
   });
 
+  // Function to send a message to the server
   const sendMessage = () => {
-    const message = document.getElementById("message");
-    if (message.value == "") return;
-    socketio.emit("message", { data: message.value });
-    message.value = "";
+    const messageInput = document.getElementById("message");
+    if (messageInput.value === "") return;
+    console.log("Sending message:", messageInput.value); // Log the message being sent
+    socketio.emit("message", { data: messageInput.value });
+    messageInput.value = ""; // Clear input field after sending
   };
-</script>
-{% for msg in messages %}
-<script type="text/javascript">
+
+  // Render initial messages on page load
+  {% for msg in messages %}
+  console.log("Rendering stored message:", "{{msg.name}}", "{{msg.message}}"); // Log initial messages
   createMessage("{{msg.name}}", "{{msg.message}}");
+  {% endfor %}
 </script>
-{% endfor %} {% endblock %}
+{% endblock %}
