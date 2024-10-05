@@ -1,19 +1,26 @@
 from flask import Flask, render_template, request, session, redirect, url_for
 from flask_socketio import join_room, leave_room, send, SocketIO
+from flask_cors import CORS  # Import CORS for cross-origin handling
 import random
 from string import ascii_uppercase
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "hjhjsdahhds"
-socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet')
+socketio = SocketIO(app, cors_allowed_origins="*")  # Enable CORS for WebSocket
+
+# Enable CORS for the entire Flask app
+CORS(app)
 
 rooms = {}
-
 def generate_unique_code(length):
     while True:
-        code = "".join(random.choice(ascii_uppercase) for _ in range(length))
+        code = ""
+        for _ in range(length):
+            code += random.choice(ascii_uppercase)
+        
         if code not in rooms:
             break
+    
     return code
 
 @app.route("/", methods=["POST", "GET"])
@@ -28,11 +35,11 @@ def home():
         if not name:
             return render_template("home.html", error="Please enter a name.", code=code, name=name)
 
-        if join and not code:
+        if join != False and not code:
             return render_template("home.html", error="Please enter a room code.", code=code, name=name)
         
         room = code
-        if create:
+        if create != False:
             room = generate_unique_code(4)
             rooms[room] = {"members": 0, "messages": []}
         elif code not in rooms:
@@ -96,4 +103,4 @@ def disconnect():
     print(f"{name} has left the room {room}")
 
 if __name__ == "__main__":
-    socketio.run(app)
+    socketio.run(app, debug=True)
